@@ -10,7 +10,7 @@ def show_auth_page(auth, firestore_db):
     # Tab para opções de login ou registro
     tab = st.tabs(["Login", "Cadastro", "Recuperar Senha"])
     
-    with tab[1]:
+    with tab[0]:
         with st.form("login_form"):
             email = st.text_input("E-mail", key="login_email")
             password = st.text_input("Senha", type="password", key="login_password")
@@ -33,7 +33,7 @@ def show_auth_page(auth, firestore_db):
                 else:
                     st.warning("Por favor, preencha todos os campos.")
     
-    with tab[2]:
+    with tab[1]:
         with st.form("register_form"):
             name = st.text_input("Nome", key="register_name")
             email = st.text_input("E-mail", key="register_email")
@@ -57,7 +57,7 @@ def show_auth_page(auth, firestore_db):
                 else:
                     st.warning("Por favor, preencha todos os campos.")
     
-    with tab[3]:
+    with tab[2]:
         with st.form("reset_form"):
             email = st.text_input("E-mail", key="reset_email")
             submit_reset = st.form_submit_button("Recuperar Senha")
