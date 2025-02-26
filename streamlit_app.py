@@ -14,7 +14,7 @@ from chat.chat_interface import (
     cleanup_old_chats
 )
 from rag.rag_engine import initialize_system
-from rag.gemini_integration import 
+from rag.gemini_integration import generate_response_with_gemini
 from utils.time_utils import get_brasilia_time
 import streamlit.components.v1 as components
 import schedule
@@ -221,13 +221,7 @@ def main():
             handle_chats(firestore_db, auth)
             
             # Inicializar e mostrar interface do chat
-            # query_engine = initialize_system()
-            # Stub temporário para query_engine
-            class QueryEngineStub:
-                def query(self, text):
-                    return "Informações de contexto para a consulta sobre IHC."
-            
-            query_engine = QueryEngineStub()
+            query_engine = initialize_system()
             
             show_chat_interface(
                 query_engine, 
