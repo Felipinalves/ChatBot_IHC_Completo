@@ -19,7 +19,7 @@ def show_auth_page(auth, db):
         # Tabs para diferentes opções de autenticação
         tab = st.tabs(["Login", "Cadastro", "Recuperar Senha"])
         
-        with tab[1]:
+        with tab[0]:
             st.subheader("Login")
             
             email = st.text_input("E-mail", key="login_email")
@@ -55,7 +55,7 @@ def show_auth_page(auth, db):
                     st.info("Redirecionando para autenticação Google...")
                     # Implementar redirecionamento para autenticação Google
         
-        with tab[2]:
+        with tab[1]:
             st.subheader("Criar uma nova conta")
             
             name = st.text_input("Nome completo", key="register_name")
@@ -83,7 +83,7 @@ def show_auth_page(auth, db):
                 else:
                     st.warning("Por favor, preencha todos os campos.")
         
-        with tab[3]:
+        with tab[2]:
             st.subheader("Recuperar senha")
             
             email = st.text_input("Digite seu e-mail", key="reset_email")
