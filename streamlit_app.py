@@ -14,7 +14,6 @@ from chat.chat_interface import (
     cleanup_old_chats
 )
 from rag.rag_engine import initialize_system
-from rag.gemini_integration import generate_response_with_gemini
 from utils.time_utils import get_brasilia_time
 import streamlit.components.v1 as components
 import schedule
