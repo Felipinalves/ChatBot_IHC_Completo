@@ -2,6 +2,10 @@ __import__('pysqlite3')
 import sys
 sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
+import ntlk
+# Baixar os stopwords do NLTK
+nltk.download("stopwords")
+
 import streamlit as st
 import uuid
 import datetime
