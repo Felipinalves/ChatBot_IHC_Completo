@@ -4,7 +4,7 @@ from utils.time_utils import get_brasilia_time
 
 def show_auth_page(auth, firestore_db):
     """Mostra a página de autenticação"""
-    st.title("Bem-vindo ao IAHC ChatBot")
+    st.title("🤖 Bem-vindo ao IAHC ChatBot!")
     
     tab = st.tabs(["Login", "Cadastro", "Recuperar Senha"])
     
