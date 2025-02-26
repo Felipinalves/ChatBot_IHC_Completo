@@ -17,9 +17,7 @@ def generate_response_with_gemini(prompt, max_retries=3):
         Texto da resposta ou None em caso de erro
     """
     try:
-        # Configurar API (apenas uma vez)
-        if not genai._initialized:
-            genai.configure(api_key=GOOGLE_API_KEY)
+        genai.configure(api_key=GOOGLE_API_KEY)
         
         generation_config = {
             "temperature": 0.7,
