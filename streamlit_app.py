@@ -13,6 +13,7 @@ from chat.chat_interface import (
     list_user_chats_from_firestore
 )
 # from rag.rag_engine import initialize_system
+import strftime
 from utils.time_utils import get_brasilia_time
 import streamlit.components.v1 as components
 
