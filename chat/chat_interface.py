@@ -1,9 +1,6 @@
 import streamlit as st
 from utils.time_utils import get_brasilia_time
 
-import streamlit as st
-from utils.time_utils import get_brasilia_time
-
 def show_chat_interface(query_engine, firestore_db, chat_id, messages):
     """Exibe a interface principal do chatbot"""
     
