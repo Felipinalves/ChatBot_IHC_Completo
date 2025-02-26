@@ -11,7 +11,7 @@ from chat.chat_interface import (
     load_chat_messages_from_firestore,
     create_new_chat_in_firestore, 
     list_user_chats_from_firestore,
-    cleanup_old_chats  # Nova função para limpar chats antigos
+    cleanup_old_chats
 )
 # from rag.rag_engine import initialize_system
 from utils.time_utils import get_brasilia_time
@@ -85,17 +85,38 @@ def handle_chats(firestore_db, auth):
             st.session_state.messages = []
             st.rerun()
         
-        # Lista de chats existentes com ícone de mensagem
+        # Criar uma área com scroll para a lista de chats
         st.divider()
-        for chat_id, chat_data in st.session_state.chats.items():
-            # Destacar o chat atual
-            is_current = chat_id == st.session_state.current_chat_id
-            button_label = f"{chat_data['title']}" if is_current else f"{chat_data['title']}"
-            
-            if st.button(button_label, key=f"chat_{chat_id}"):
-                st.session_state.current_chat_id = chat_id
-                st.session_state.messages = load_chat_messages_from_firestore(firestore_db, chat_id)
-                st.rerun()
+        
+        # Aplicar CSS para criar área de scroll
+        st.markdown("""
+        <style>
+        div[data-testid="stVerticalBlock"] div.chat-list {
+            max-height: 60vh;
+            overflow-y: auto;
+            padding-right: 10px;
+            margin-bottom: 20px;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+        
+        # Container com classe chat-list para aplicar o scroll
+        chat_list_container = st.container()
+        
+        # Inicia o bloco HTML para a lista de chats com classe personalizada
+        chat_list_html = """<div class="chat-list">"""
+        
+        # Para cada chat, crie um container dentro da área de scroll
+        with chat_list_container:
+            for chat_id, chat_data in st.session_state.chats.items():
+                # Destacar o chat atual
+                is_current = chat_id == st.session_state.current_chat_id
+                button_label = f"{chat_data['title']}" if is_current else f"{chat_data['title']}"
+                
+                if st.button(button_label, key=f"chat_{chat_id}"):
+                    st.session_state.current_chat_id = chat_id
+                    st.session_state.messages = load_chat_messages_from_firestore(firestore_db, chat_id)
+                    st.rerun()
         
         # Adicionar uma divisão antes do perfil do usuário
         st.divider()
