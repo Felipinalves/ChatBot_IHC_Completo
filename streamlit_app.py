@@ -119,6 +119,10 @@ def handle_chats(firestore_db, auth):
                 if st.button("🚪 Sair"):
                     # Lógica para logout
                     try:
+                        # Verificar se tem um chat temporário vazio para deletar
+                        if st.session_state.get("is_temp_chat", False):
+                            delete_empty_chat(firestore_db, st.session_state.current_chat_id)
+                        
                         auth.current_user = None  # Limpar o usuário atual no auth
                         for key in list(st.session_state.keys()):
                             del st.session_state[key]  # Limpar todos os estados
