@@ -19,6 +19,21 @@ from llama_index.core import StorageContext
 from llama_index.core import Settings
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 import google.generativeai as genai
+import nltk
+
+# Verificar se estamos no Streamlit Cloud
+if os.environ.get("STREAMLIT_SHARING_MODE") == "streamlit":
+    # Usar diretório temporário para o cache
+    temp_dir = os.path.join("/tmp", "nltk_data")
+    os.makedirs(temp_dir, exist_ok=True)
+    nltk.data.path.append(temp_dir)
+    os.environ["LLAMA_INDEX_CACHE_DIR"] = os.path.join("/tmp", ".llama_index_cache")
+else:
+    # Configuração para ambiente local
+    nltk_data_dir = os.path.join(os.path.expanduser("~"), "nltk_data")
+    os.makedirs(nltk_data_dir, exist_ok=True)
+    nltk.data.path.append(nltk_data_dir)
+    os.environ["LLAMA_INDEX_CACHE_DIR"] = os.path.join(os.path.expanduser("~"), ".llama_index_cache")
 
 # Configurações do Firebase
 firebase_config = {
