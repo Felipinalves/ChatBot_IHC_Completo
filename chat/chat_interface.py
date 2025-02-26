@@ -4,14 +4,6 @@ from datetime import datetime, timedelta
 import google.cloud.firestore as firestore
 from rag.gemini_integration import generate_response_with_gemini
 
-def generate_response_with_gemini(prompt):
-    """
-    Função stub para integração com o Gemini (ou outro modelo)
-    Em um ambiente real, esta função chamaria a API do modelo
-    """
-    # Este é apenas um exemplo; em produção, você integraria com a API real
-    return f"Resposta simulada sobre IHC para: {prompt.split('Pergunta:')[-1]}"
-
 def show_chat_interface(query_engine, firestore_db, chat_id, messages):
     """Exibe a interface principal do chatbot"""
     
