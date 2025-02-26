@@ -27,7 +27,7 @@ def main():
         )
         
         if "user_id" not in st.session_state or not st.session_state.user_id:
-            show_auth_page()
+            show_auth_page(auth, db)
         else:
             handle_chats()
             #query_engine = initialize_system()
