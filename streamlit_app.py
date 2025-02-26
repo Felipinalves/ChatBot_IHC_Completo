@@ -1,3 +1,11 @@
+import os
+import nltk
+
+# Definir o diretório de cache do NLTK para um local onde temos permissão de escrita
+nltk_data_dir = os.path.join(os.getcwd(), "nltk_data")
+os.makedirs(nltk_data_dir, exist_ok=True)
+nltk.data.path.append(nltk_data_dir)
+
 __import__('pysqlite3')
 import sys
 sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
@@ -5,7 +13,6 @@ sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 import streamlit as st
 import chromadb
 import time
-import os
 from llama_index.core import VectorStoreIndex, SimpleDirectoryReader
 from llama_index.vector_stores.chroma.base import ChromaVectorStore
 from llama_index.core import StorageContext
