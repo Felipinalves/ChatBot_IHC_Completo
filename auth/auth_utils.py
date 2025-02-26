@@ -4,7 +4,7 @@ import streamlit as st
 def login_with_email(auth, email, password):
     try:
         user = auth.sign_in_with_email_and_password(email, password)
-        return user
+        return user, None
     except Exception as e:
         error_json = e.args[1]
         error_dict = json.loads(error_json)
@@ -34,8 +34,22 @@ def register_user(auth, db, email, password, name):
         error_message = error_dict.get('error', {}).get('message', 'Erro desconhecido')
         
         if error_message == 'EMAIL_EXISTS':
-            return None, "Este e-mail já está em uso. Tente fazer login ou recuperar sua senha."
+            return None, "Cadastro realizado com sucesso! faça seu login."
         elif error_message == 'WEAK_PASSWORD':
             return None, "Senha fraca. Use pelo menos 6 caracteres."
         else:
             return None, f"Erro ao criar conta: {error_message}"
+
+def reset_password(auth, email):
+    try:
+        auth.send_password_reset_email(email)
+        return True, "E-mail de recuperação enviado. Verifique sua caixa de entrada."
+    except Exception as e:
+        error_json = e.args[1]
+        error_dict = json.loads(error_json)
+        error_message = error_dict.get('error', {}).get('message', 'Erro desconhecido')
+        
+        if error_message == 'EMAIL_NOT_FOUND':
+            return False, "E-mail não encontrado. Por favor, verifique seu e-mail ou crie uma conta."
+        else:
+            return False, f"Erro ao enviar e-mail de recuperação: {error_message}"
