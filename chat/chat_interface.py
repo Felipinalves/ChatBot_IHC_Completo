@@ -2,6 +2,7 @@ import streamlit as st
 from utils.time_utils import get_brasilia_time
 from datetime import datetime, timedelta
 import google.cloud.firestore as firestore
+from rag.gemini_integration import generate_response_with_gemini
 
 def generate_response_with_gemini(prompt):
     """
@@ -96,7 +97,7 @@ Forneça uma resposta direta e bem estruturada, desenvolvendo a explicação com
                 # Salvar chat e mensagens no Firestore
                 save_chat_to_firestore(firestore_db, chat_id, messages)
             
-            status.update(label="Resposta gerada!", state="complete", expanded=False)
+            status.update(label="Resposta gerada!", state="complete", expanded=True)
 
 def save_chat_to_firestore(firestore_db, chat_id, messages):
     """
