@@ -10,11 +10,24 @@ from chat.chat_interface import (
     show_chat_interface, 
     load_chat_messages_from_firestore,
     create_new_chat_in_firestore, 
-    list_user_chats_from_firestore
+    list_user_chats_from_firestore,
+    cleanup_old_chats  # Nova função para limpar chats antigos
 )
 # from rag.rag_engine import initialize_system
 from utils.time_utils import get_brasilia_time
 import streamlit.components.v1 as components
+import schedule
+import time
+import threading
+
+# Função para executar limpeza em segundo plano
+def run_scheduled_cleanup(firestore_db):
+    """Executa limpeza programada em segundo plano"""
+    schedule.every().day.at("03:00").do(cleanup_old_chats, firestore_db, 30)  # Executa às 3h da manhã
+    
+    while True:
+        schedule.run_pending()
+        time.sleep(3600)  # Verifica a cada hora
 
 def handle_chats(firestore_db, auth):
     """Gerencia a interface de chats e histórico"""
@@ -40,10 +53,22 @@ def handle_chats(firestore_db, auth):
             st.session_state.chats = list_user_chats_from_firestore(firestore_db, st.session_state.user_id)
         
         if "current_chat_id" not in st.session_state:
-            st.session_state.current_chat_id = None
+            # Se não tiver chat atual, pega o primeiro da lista ou cria um novo
+            if st.session_state.chats:
+                first_chat_id = next(iter(st.session_state.chats))
+                st.session_state.current_chat_id = first_chat_id
+                st.session_state.messages = load_chat_messages_from_firestore(firestore_db, first_chat_id)
+            else:
+                new_chat_title = f"Novo Chat" 
+                new_chat_id = create_new_chat_in_firestore(firestore_db, st.session_state.user_id, new_chat_title)
+                st.session_state.current_chat_id = new_chat_id
+                st.session_state.messages = []
         
         if "messages" not in st.session_state:
-            st.session_state.messages = []
+            if st.session_state.current_chat_id:
+                st.session_state.messages = load_chat_messages_from_firestore(firestore_db, st.session_state.current_chat_id)
+            else:
+                st.session_state.messages = []
     
     # Sidebar para gerenciar chats
     with st.sidebar:
@@ -107,6 +132,16 @@ def main():
             layout="wide",
             initial_sidebar_state="auto"
         )
+        
+        # Iniciar thread de limpeza de chats antigos (30 dias)
+        if "cleanup_thread" not in st.session_state:
+            cleanup_thread = threading.Thread(
+                target=run_scheduled_cleanup, 
+                args=(firestore_db,), 
+                daemon=True
+            )
+            cleanup_thread.start()
+            st.session_state.cleanup_thread = True
         
         # Verificar autenticação
         if "user_id" not in st.session_state or not st.session_state.user_id:
