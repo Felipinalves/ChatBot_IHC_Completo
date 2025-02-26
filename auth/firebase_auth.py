@@ -22,6 +22,7 @@ def initialize_firebase_admin():
             cred = credentials.Certificate(cred_dict)
             # Inicializa o Firebase Admin SDK
             firebase_admin.initialize_app(cred)
+        # Retorna o cliente Firestore
         return firestore.client()
     except Exception as e:
         st.error(f"Erro ao inicializar Firebase Admin SDK: {str(e)}")
