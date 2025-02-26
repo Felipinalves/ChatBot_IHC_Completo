@@ -43,8 +43,8 @@ def register_user(auth, db, email, password, name):
         if error_message == 'EMAIL_EXISTS':
             return None, f"Você já possui uma conta. Por favor, faça login ou recupere sua senha."
             
-            else:
-                return None, f"Erro ao criar conta: {error_message}"
+        else:
+            return None, f"Erro ao criar conta: {error_message}"
 
 def reset_password(auth, email):
     try:
