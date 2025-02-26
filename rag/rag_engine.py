@@ -43,7 +43,7 @@ def initialize_system():
         vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
         storage_context = StorageContext.from_defaults(vector_store=vector_store)
         
-        documents = SimpleDirectoryReader("./arquivosFormatados").load_data()
+        documents = SimpleDirectoryReader("../arquivosFormatados").load_data()
         index = VectorStoreIndex.from_documents(
             documents, 
             storage_context=storage_context,
