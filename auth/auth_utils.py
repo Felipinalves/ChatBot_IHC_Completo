@@ -7,7 +7,8 @@ def login_with_email(auth, email, password):
         user = auth.sign_in_with_email_and_password(email, password)
         return user, None
     except Exception as e:
-        error_dict = json.loads(e.args[0])  # O erro está no primeiro argumento
+        error_json = e.args[1]
+        error_dict = json.loads(error_json)
         error_message = error_dict.get('error', {}).get('message', 'Erro desconhecido')
         
         if error_message == 'EMAIL_NOT_FOUND':
@@ -19,22 +20,28 @@ def login_with_email(auth, email, password):
 
 def register_user(auth, db, email, password, name):
     try:
+        # Usando Pyrebase para autenticação
         user = auth.create_user_with_email_and_password(email, password)
+        
+        # Criando dados do usuário para o Firestore
         user_data = {
             "name": name,
             "email": email,
             "created_at": get_brasilia_time(),
             "photo_url": ""
         }
-        # Salva os dados do usuário no Firestore
+        
+        # Usando Firestore para armazenar dados do usuário
         db.collection("users").document(user['localId']).set(user_data)
+        
         return user, None
     except Exception as e:
-        error_dict = json.loads(e.args[0])  # O erro está no primeiro argumento
+        error_json = e.args[1]
+        error_dict = json.loads(error_json)
         error_message = error_dict.get('error', {}).get('message', 'Erro desconhecido')
         
         if error_message == 'EMAIL_EXISTS':
-            return None, "Cadastro realizado com sucesso! Faça seu login."
+            return None, "Cadastro realizado com sucesso! faça seu login."
         elif error_message == 'WEAK_PASSWORD':
             return None, "Senha fraca. Use pelo menos 6 caracteres."
         else:
@@ -45,10 +52,12 @@ def reset_password(auth, email):
         auth.send_password_reset_email(email)
         return True, "E-mail de recuperação enviado. Verifique sua caixa de entrada."
     except Exception as e:
-        error_dict = json.loads(e.args[0])  # O erro está no primeiro argumento
+        error_json = e.args[1]
+        error_dict = json.loads(error_json)
         error_message = error_dict.get('error', {}).get('message', 'Erro desconhecido')
         
         if error_message == 'EMAIL_NOT_FOUND':
             return False, "E-mail não encontrado. Por favor, verifique seu e-mail ou crie uma conta."
         else:
             return False, f"Erro ao enviar e-mail de recuperação: {error_message}"
+
