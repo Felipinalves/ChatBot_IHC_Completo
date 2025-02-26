@@ -72,14 +72,15 @@ def handle_chats(firestore_db, auth):
     
     # Sidebar para gerenciar chats
     with st.sidebar:
-        
+
+        st.title("👤 Meu Perfil")
         # Seção para mostrar o email do usuário e opção de logout
         if "user_email" in st.session_state:
             # Criando um container para o dropdown
             user_container = st.container()
             
             # Criando um expander para simular um dropdown
-            with user_container.expander(f"👤 {st.session_state.user_email}"):
+            with user_container.expander(f"{st.session_state.user_email}"):
                 if st.button("🚪 Sair"):
                     # Lógica para logout
                     try:
