@@ -42,7 +42,7 @@ def register_user(auth, db, email, password, name):
         
         if error_message == 'EMAIL_EXISTS':
             return None, f"Você já possui uma conta. Por favor, faça login ou recupere sua senha."
-        elif error_message == 'WEAK_PASSWORD':
+        elif 'WEAK_PASSWORD' in error_message:
             return None, f"Você inseriu uma senha fraca. Por favor insira uma senha com no mínimo 6 caracteres"
         else:
             return None, f"Erro ao criar conta: {error_message}"
