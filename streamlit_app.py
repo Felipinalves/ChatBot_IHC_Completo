@@ -61,7 +61,7 @@ def main():
             auth = pyrebase_app.auth()
         
         st.set_page_config(
-            page_title="IAHC Chatbot",
+            page_title="IAHC ChatBot",
             page_icon="🤖",
             layout="wide",
             initial_sidebar_state="auto"
@@ -93,9 +93,7 @@ def main():
 
 # Função para atualizar a interface auth_interface.py
 def update_auth_interface():
-    """
-    Código para auth_interface.py - removi o login com Google
-    """
+  
     import streamlit as st
     from auth.auth_utils import login_with_email, register_user, reset_password
 
