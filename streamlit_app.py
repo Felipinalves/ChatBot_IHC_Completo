@@ -23,22 +23,70 @@ from llama_index.core import StorageContext
 from llama_index.core import Settings
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 import google.generativeai as genai
+import firebase_admin
+from firebase_admin import credentials, firestore
 
-# Configurações do Firebase
-firebase_config = {
-    "apiKey": st.secrets["FIREBASE_API_KEY"],
-    "authDomain": st.secrets["FIREBASE_AUTH_DOMAIN"],
-    "databaseURL": st.secrets["FIREBASE_DATABASE_URL"],
-    "projectId": st.secrets["FIREBASE_PROJECT_ID"],
-    "storageBucket": st.secrets["FIREBASE_STORAGE_BUCKET"],
-    "messagingSenderId": st.secrets["FIREBASE_MESSAGING_SENDER_ID"],
-    "appId": st.secrets["FIREBASE_APP_ID"]
-}
+# Função para carregar as credenciais do Firebase do Streamlit secrets
+def get_firebase_credentials():
+    if "FIREBASE_SERVICE_ACCOUNT" in st.secrets:
+        return json.loads(st.secrets["FIREBASE_SERVICE_ACCOUNT"])
+    elif "firebase" in st.secrets:
+        firebase_config = st.secrets["firebase"]
+        credentials_dict = {
+            "type": firebase_config["type"],
+            "project_id": firebase_config["project_id"],
+            "private_key_id": firebase_config["private_key_id"],
+            "private_key": firebase_config["private_key"],
+            "client_email": firebase_config["client_email"],
+            "client_id": firebase_config["client_id"],
+            "auth_uri": firebase_config["auth_uri"],
+            "token_uri": firebase_config["token_uri"],
+            "auth_provider_x509_cert_url": firebase_config["auth_provider_x509_cert_url"],
+            "client_x509_cert_url": firebase_config["client_x509_cert_url"],
+            "universe_domain": firebase_config.get("universe_domain", "")
+        }
+        return credentials_dict
+    else:
+        raise Exception("Firebase credentials not found in Streamlit secrets.")
 
-# Inicializar Firebase
-firebase = pyrebase.initialize_app(firebase_config)
-auth = firebase.auth()
-db = firebase.database()
+# Inicializar Firebase Admin SDK
+@st.cache_resource(show_spinner=False)
+def initialize_firebase_admin():
+    try:
+        if not firebase_admin._apps:
+            cred_dict = get_firebase_credentials()
+            cred = credentials.Certificate(cred_dict)
+            firebase_admin.initialize_app(cred)
+        return firestore.client()
+    except Exception as e:
+        st.error(f"Erro ao inicializar Firebase Admin SDK: {str(e)}")
+        return None
+
+# Configurações do Firebase para Pyrebase
+@st.cache_resource(show_spinner=False)
+def initialize_pyrebase():
+    try:
+        firebase_config = {
+            "apiKey": st.secrets["FIREBASE_API_KEY"],
+            "authDomain": st.secrets["FIREBASE_AUTH_DOMAIN"],
+            "databaseURL": st.secrets["FIREBASE_DATABASE_URL"],
+            "projectId": st.secrets["FIREBASE_PROJECT_ID"],
+            "storageBucket": st.secrets["FIREBASE_STORAGE_BUCKET"],
+            "messagingSenderId": st.secrets["FIREBASE_MESSAGING_SENDER_ID"],
+            "appId": st.secrets["FIREBASE_APP_ID"]
+        }
+        firebase = pyrebase.initialize_app(firebase_config)
+        return firebase
+    except Exception as e:
+        st.error(f"Erro ao inicializar Pyrebase: {str(e)}")
+        return None
+
+# Inicializar serviços
+db_admin = initialize_firebase_admin()
+pyrebase_app = initialize_pyrebase()
+if pyrebase_app:
+    auth = pyrebase_app.auth()
+    db = pyrebase_app.database()
 
 # Configuração da página
 st.set_page_config(
