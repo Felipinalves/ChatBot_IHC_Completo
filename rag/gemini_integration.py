@@ -6,16 +6,16 @@ import streamlit as st
 GOOGLE_API_KEY = st.secrets("GOOGLE_API_KEY")
 
 def generate_response_with_gemini(prompt, max_retries=3):
-   """
-    Gera uma resposta usando o modelo Gemini da Google
-    
-    Args:
-        prompt: Texto de entrada para o modelo
-        max_retries: Número máximo de tentativas em caso de erro
-        
-    Returns:
-        Texto da resposta ou None em caso de erro
-    """
+      """
+       Gera uma resposta usando o modelo Gemini da Google
+       
+       Args:
+           prompt: Texto de entrada para o modelo
+           max_retries: Número máximo de tentativas em caso de erro
+           
+       Returns:
+           Texto da resposta ou None em caso de erro
+       """
     try:
         # Configurar API (apenas uma vez)
         if not genai._initialized:
@@ -32,19 +32,19 @@ def generate_response_with_gemini(prompt, max_retries=3):
             model_name="gemini-1.5-pro",
             generation_config=generation_config
         )
-    
-    for attempt in range(max_retries):
-        try:
-            response = model.generate_content(prompt)
-            if response and hasattr(response, 'text'):
-                    return response.text
-                return None
-            except Exception as e:
-                if attempt < max_retries - 1:
-                    time.sleep(2)
-                    continue
-                st.error(f"Erro ao gerar resposta: {str(e)}")
-                return None
+       
+       for attempt in range(max_retries):
+           try:
+               response = model.generate_content(prompt)
+               if response and hasattr(response, 'text'):
+                       return response.text
+                   return None
+               except Exception as e:
+                   if attempt < max_retries - 1:
+                       time.sleep(2)
+                       continue
+                   st.error(f"Erro ao gerar resposta: {str(e)}")
+                   return None
     except Exception as e:
         st.error(f"Erro na configuração do Gemini: {str(e)}")
         return "Não foi possível conectar ao modelo de linguagem. Por favor, verifique a configuração da API."
