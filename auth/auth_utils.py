@@ -1,13 +1,13 @@
 import json
 import streamlit as st
+from utils.time_utils import get_brasilia_time
 
 def login_with_email(auth, email, password):
     try:
         user = auth.sign_in_with_email_and_password(email, password)
         return user, None
     except Exception as e:
-        error_json = e.args[1]
-        error_dict = json.loads(error_json)
+        error_dict = json.loads(e.args[0])  # O erro está no primeiro argumento
         error_message = error_dict.get('error', {}).get('message', 'Erro desconhecido')
         
         if error_message == 'EMAIL_NOT_FOUND':
@@ -26,15 +26,15 @@ def register_user(auth, db, email, password, name):
             "created_at": get_brasilia_time(),
             "photo_url": ""
         }
-        db.child("users").child(user['localId']).set(user_data)
+        # Salva os dados do usuário no Firestore
+        db.collection("users").document(user['localId']).set(user_data)
         return user, None
     except Exception as e:
-        error_json = e.args[1]
-        error_dict = json.loads(error_json)
+        error_dict = json.loads(e.args[0])  # O erro está no primeiro argumento
         error_message = error_dict.get('error', {}).get('message', 'Erro desconhecido')
         
         if error_message == 'EMAIL_EXISTS':
-            return None, "Cadastro realizado com sucesso! faça seu login."
+            return None, "Cadastro realizado com sucesso! Faça seu login."
         elif error_message == 'WEAK_PASSWORD':
             return None, "Senha fraca. Use pelo menos 6 caracteres."
         else:
@@ -45,8 +45,7 @@ def reset_password(auth, email):
         auth.send_password_reset_email(email)
         return True, "E-mail de recuperação enviado. Verifique sua caixa de entrada."
     except Exception as e:
-        error_json = e.args[1]
-        error_dict = json.loads(error_json)
+        error_dict = json.loads(e.args[0])  # O erro está no primeiro argumento
         error_message = error_dict.get('error', {}).get('message', 'Erro desconhecido')
         
         if error_message == 'EMAIL_NOT_FOUND':
