@@ -26,7 +26,7 @@ def handle_chats(firestore_db, auth):
         st.session_state.first_access = True
         
         # Sempre cria um novo chat ao fazer login
-        new_chat_title = f"Chat {get_brasilia_time().strftime('%d/%m/%Y %H:%M')}"
+        new_chat_title = f"Chat {get_brasilia_time()}"
         new_chat_id = create_new_chat_in_firestore(firestore_db, st.session_state.user_id, new_chat_title)
         st.session_state.current_chat_id = new_chat_id
         
@@ -52,7 +52,7 @@ def handle_chats(firestore_db, auth):
         
         # Botão para novo chat com ícone de mais
         if st.button("➕ Novo Chat"):
-            new_chat_title = f"Chat {get_brasilia_time().strftime('%d/%m/%Y %H:%M')}"
+            new_chat_title = f"Chat {get_brasilia_time()}"
             new_chat_id = create_new_chat_in_firestore(firestore_db, st.session_state.user_id, new_chat_title)
             
             # Atualizar o estado
