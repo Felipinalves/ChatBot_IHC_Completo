@@ -19,6 +19,7 @@ import streamlit.components.v1 as components
 import schedule
 import time
 import threading
+from datetime import datetime
 
 # Função para executar limpeza em segundo plano
 def run_scheduled_cleanup(firestore_db):
@@ -29,6 +30,25 @@ def run_scheduled_cleanup(firestore_db):
         schedule.run_pending()
         time.sleep(3600)  # Verifica a cada hora
 
+def delete_empty_chat(firestore_db, chat_id):
+    """Deleta um chat vazio do Firestore"""
+    if not chat_id:
+        return
+        
+    # Verificar se tem mensagens
+    message_count = len(list(firestore_db.collection("chats").document(chat_id).collection("messages").limit(1).stream()))
+    
+    # Se não tiver mensagens, deletar o chat
+    if message_count == 0:
+        firestore_db.collection("chats").document(chat_id).delete()
+        print(f"Chat vazio {chat_id} foi deletado")
+
+def get_chat_timestamp_title():
+    """Gera título do chat com data e hora atual"""
+    now = get_brasilia_time()
+    # Formato: "DD/MM - HH:MM"
+    return now.strftime("%d/%m - %H:%M")
+
 def handle_chats(firestore_db, auth):
     """Gerencia a interface de chats e histórico"""
     
@@ -37,8 +57,8 @@ def handle_chats(firestore_db, auth):
         # Marca como primeiro acesso
         st.session_state.first_access = True
         
-        # Sempre cria um novo chat ao fazer login
-        new_chat_title = f"Novo Chat"  # Título genérico que será atualizado com a primeira pergunta
+        # Cria um novo chat ao fazer login com título baseado em data/hora
+        new_chat_title = get_chat_timestamp_title()
         new_chat_id = create_new_chat_in_firestore(firestore_db, st.session_state.user_id, new_chat_title)
         st.session_state.current_chat_id = new_chat_id
         
@@ -47,6 +67,9 @@ def handle_chats(firestore_db, auth):
         
         # Lista todos os chats incluindo o recém-criado
         st.session_state.chats = list_user_chats_from_firestore(firestore_db, st.session_state.user_id)
+        
+        # Registra que este chat é temporário até que tenha mensagens
+        st.session_state.is_temp_chat = True
     else:
         # Inicializar o estado da sessão para chats se não existir
         if "chats" not in st.session_state:
@@ -58,17 +81,29 @@ def handle_chats(firestore_db, auth):
                 first_chat_id = next(iter(st.session_state.chats))
                 st.session_state.current_chat_id = first_chat_id
                 st.session_state.messages = load_chat_messages_from_firestore(firestore_db, first_chat_id)
+                st.session_state.is_temp_chat = False  # Já existente, então não é temporário
             else:
-                new_chat_title = f"Novo Chat" 
+                new_chat_title = get_chat_timestamp_title()
                 new_chat_id = create_new_chat_in_firestore(firestore_db, st.session_state.user_id, new_chat_title)
                 st.session_state.current_chat_id = new_chat_id
                 st.session_state.messages = []
+                st.session_state.is_temp_chat = True  # Novo chat é temporário
         
         if "messages" not in st.session_state:
             if st.session_state.current_chat_id:
                 st.session_state.messages = load_chat_messages_from_firestore(firestore_db, st.session_state.current_chat_id)
             else:
                 st.session_state.messages = []
+    
+    # Registrar evento de sessão para limpeza ao deslogar/fechar
+    if "on_session_end" not in st.session_state:
+        def handle_session_end():
+            # Verificar se tem um chat temporário vazio para deletar
+            if st.session_state.get("is_temp_chat", False) and st.session_state.get("current_chat_id"):
+                delete_empty_chat(firestore_db, st.session_state.current_chat_id)
+        
+        # Registrar o handler no estado da sessão
+        st.session_state.on_session_end = handle_session_end
     
     # Sidebar para gerenciar chats
     with st.sidebar:
@@ -98,13 +133,19 @@ def handle_chats(firestore_db, auth):
         
         # Botão para novo chat com ícone de mais
         if st.button("➕ Novo Chat"):
-            new_chat_title = f"Novo Chat"  # Título genérico que será atualizado com a primeira pergunta
+            # Se tiver um chat temporário, exclui antes de criar um novo
+            if st.session_state.get("is_temp_chat", False):
+                delete_empty_chat(firestore_db, st.session_state.current_chat_id)
+            
+            # Criar novo chat com timestamp
+            new_chat_title = get_chat_timestamp_title()
             new_chat_id = create_new_chat_in_firestore(firestore_db, st.session_state.user_id, new_chat_title)
             
             # Atualizar o estado
             st.session_state.current_chat_id = new_chat_id
             st.session_state.chats = list_user_chats_from_firestore(firestore_db, st.session_state.user_id)
             st.session_state.messages = []
+            st.session_state.is_temp_chat = True  # Marcar como temporário
             st.rerun()
         
         # Criar uma área com scroll para a lista de chats
@@ -125,9 +166,6 @@ def handle_chats(firestore_db, auth):
         # Container com classe chat-list para aplicar o scroll
         chat_list_container = st.container()
         
-        # Inicia o bloco HTML para a lista de chats com classe personalizada
-        chat_list_html = """<div class="chat-list">"""
-        
         # Para cada chat, crie um container dentro da área de scroll
         with chat_list_container:
             for chat_id, chat_data in st.session_state.chats.items():
@@ -136,8 +174,13 @@ def handle_chats(firestore_db, auth):
                 button_label = f"{chat_data['title']}" if is_current else f"{chat_data['title']}"
                 
                 if st.button(button_label, key=f"chat_{chat_id}"):
+                    # Se tinha um chat temporário, exclui antes de mudar
+                    if st.session_state.get("is_temp_chat", False):
+                        delete_empty_chat(firestore_db, st.session_state.current_chat_id)
+                    
                     st.session_state.current_chat_id = chat_id
                     st.session_state.messages = load_chat_messages_from_firestore(firestore_db, chat_id)
+                    st.session_state.is_temp_chat = False  # Chat existente não é temporário
                     st.rerun()
 
 def main():
