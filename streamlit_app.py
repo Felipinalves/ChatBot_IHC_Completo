@@ -19,15 +19,31 @@ import streamlit.components.v1 as components
 def handle_chats(firestore_db, auth):
     """Gerencia a interface de chats e histórico"""
     
-    # Inicializar o estado da sessão para chats
-    if "chats" not in st.session_state:
-        st.session_state.chats = list_user_chats_from_firestore(firestore_db, st.session_state.user_id)
-    
-    if "current_chat_id" not in st.session_state:
-        st.session_state.current_chat_id = None
-    
-    if "messages" not in st.session_state:
+    # Verificar se é a primeira vez que está acessando após o login
+    if "first_access" not in st.session_state:
+        # Marca como primeiro acesso
+        st.session_state.first_access = True
+        
+        # Sempre cria um novo chat ao fazer login
+        new_chat_title = f"Chat {get_brasilia_time().strftime('%d/%m/%Y %H:%M')}"
+        new_chat_id = create_new_chat_in_firestore(firestore_db, st.session_state.user_id, new_chat_title)
+        st.session_state.current_chat_id = new_chat_id
+        
+        # Inicializa mensagens vazias para o novo chat
         st.session_state.messages = []
+        
+        # Lista todos os chats incluindo o recém-criado
+        st.session_state.chats = list_user_chats_from_firestore(firestore_db, st.session_state.user_id)
+    else:
+        # Inicializar o estado da sessão para chats se não existir
+        if "chats" not in st.session_state:
+            st.session_state.chats = list_user_chats_from_firestore(firestore_db, st.session_state.user_id)
+        
+        if "current_chat_id" not in st.session_state:
+            st.session_state.current_chat_id = None
+        
+        if "messages" not in st.session_state:
+            st.session_state.messages = []
     
     # Sidebar para gerenciar chats
     with st.sidebar:
@@ -35,7 +51,7 @@ def handle_chats(firestore_db, auth):
         
         # Botão para novo chat com ícone de mais
         if st.button("➕ Novo Chat"):
-            new_chat_title = f"Chat {len(st.session_state.chats) + 1}"
+            new_chat_title = f"Chat {get_brasilia_time().strftime('%d/%m/%Y %H:%M')}"
             new_chat_id = create_new_chat_in_firestore(firestore_db, st.session_state.user_id, new_chat_title)
             
             # Atualizar o estado
@@ -47,7 +63,11 @@ def handle_chats(firestore_db, auth):
         # Lista de chats existentes com ícone de mensagem
         st.divider()
         for chat_id, chat_data in st.session_state.chats.items():
-            if st.button(f"{chat_data['title']}", key=f"chat_{chat_id}"):
+            # Destacar o chat atual
+            is_current = chat_id == st.session_state.current_chat_id
+            button_label = f"{chat_data['title']}" if is_current else f"{chat_data['title']}"
+            
+            if st.button(button_label, key=f"chat_{chat_id}"):
                 st.session_state.current_chat_id = chat_id
                 st.session_state.messages = load_chat_messages_from_firestore(firestore_db, chat_id)
                 st.rerun()
