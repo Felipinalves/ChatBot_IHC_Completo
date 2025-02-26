@@ -20,10 +20,6 @@ from llama_index.core import Settings
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 import google.generativeai as genai
 
-
-import nltk
-nltk.download('stopwords')
-
 # Configurações do Firebase
 firebase_config = {
     "apiKey": st.secrets["FIREBASE_API_KEY"],
