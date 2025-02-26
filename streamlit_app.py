@@ -31,7 +31,7 @@ def handle_chats(firestore_db, auth):
     
     # Sidebar para gerenciar chats
     with st.sidebar:
-        st.title("Meus Chats")
+        st.title("💬 Meus Chats")
         
         # Botão para novo chat com ícone de mais
         if st.button("➕ Novo Chat"):
@@ -47,7 +47,7 @@ def handle_chats(firestore_db, auth):
         # Lista de chats existentes com ícone de mensagem
         st.divider()
         for chat_id, chat_data in st.session_state.chats.items():
-            if st.button(f"💬 {chat_data['title']}", key=f"chat_{chat_id}"):
+            if st.button(f"{chat_data['title']}", key=f"chat_{chat_id}"):
                 st.session_state.current_chat_id = chat_id
                 st.session_state.messages = load_chat_messages_from_firestore(firestore_db, chat_id)
                 st.rerun()
