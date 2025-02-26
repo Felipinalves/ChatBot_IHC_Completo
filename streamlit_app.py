@@ -72,6 +72,27 @@ def handle_chats(firestore_db, auth):
     
     # Sidebar para gerenciar chats
     with st.sidebar:
+        
+        # Seção para mostrar o email do usuário e opção de logout
+        if "user_email" in st.session_state:
+            # Criando um container para o dropdown
+            user_container = st.container()
+            
+            # Criando um expander para simular um dropdown
+            with user_container.expander(f"👤 {st.session_state.user_email}"):
+                if st.button("🚪 Sair"):
+                    # Lógica para logout
+                    try:
+                        auth.current_user = None  # Limpar o usuário atual no auth
+                        for key in list(st.session_state.keys()):
+                            del st.session_state[key]  # Limpar todos os estados
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"Erro ao fazer logout: {str(e)}")
+        
+        # Adicionar uma divisão após do perfil do usuário
+        st.divider()
+                        
         st.title("💬 Meus Chats")
         
         # Botão para novo chat com ícone de mais
@@ -117,26 +138,6 @@ def handle_chats(firestore_db, auth):
                     st.session_state.current_chat_id = chat_id
                     st.session_state.messages = load_chat_messages_from_firestore(firestore_db, chat_id)
                     st.rerun()
-        
-        # Adicionar uma divisão antes do perfil do usuário
-        st.divider()
-        
-        # Seção para mostrar o email do usuário e opção de logout
-        if "user_email" in st.session_state:
-            # Criando um container para o dropdown
-            user_container = st.container()
-            
-            # Criando um expander para simular um dropdown
-            with user_container.expander(f"👤 {st.session_state.user_email}"):
-                if st.button("🚪 Sair"):
-                    # Lógica para logout
-                    try:
-                        auth.current_user = None  # Limpar o usuário atual no auth
-                        for key in list(st.session_state.keys()):
-                            del st.session_state[key]  # Limpar todos os estados
-                        st.rerun()
-                    except Exception as e:
-                        st.error(f"Erro ao fazer logout: {str(e)}")
 
 def main():
     try:
