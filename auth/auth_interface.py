@@ -4,11 +4,11 @@ from utils.time_utils import get_brasilia_time
 
 def show_auth_page(auth, firestore_db):
     """Mostra a página de autenticação"""
-    st.title("Bem-vindo ao Chatbot Especialista em IHC")
+    st.title("Bem-vindo ao IAHC ChatBot")
     
     tab = st.tabs(["Login", "Cadastro", "Recuperar Senha"])
     
-    with tab[1]:
+    with tab[0]:
         # Formulário de login
         with st.form("login_form"):
             email = st.text_input("E-mail", key="login_email")
@@ -27,7 +27,7 @@ def show_auth_page(auth, firestore_db):
                 else:
                     st.warning("Por favor, preencha todos os campos.")
     
-    with tab[2]:
+    with tab[1]:
         # Formulário de cadastro
         with st.form("register_form"):
             name = st.text_input("Nome", key="register_name")
@@ -50,7 +50,7 @@ def show_auth_page(auth, firestore_db):
                 else:
                     st.warning("Por favor, preencha todos os campos.")
     
-    with tab[3]:
+    with tab[2]:
         # Formulário de recuperação de senha
         with st.form("reset_password_form"):
             email = st.text_input("E-mail", key="reset_email")
