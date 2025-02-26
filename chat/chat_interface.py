@@ -4,7 +4,7 @@ from utils.time_utils import get_brasilia_time
 def show_chat_interface(query_engine, firestore_db, chat_id, messages):
     """Exibe a interface principal do chatbot"""
     
-    st.title(f"🤖 IAHC Chatbot")
+    st.title(f"🤖 IAHC ChatBot")
     st.info("Este chatbot utiliza RAG (Retrieval Augmented Generation) para fornecer respostas precisas sobre IHC.", icon="ℹ️")
     
     # Exibir mensagens anteriores
