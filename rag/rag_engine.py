@@ -6,8 +6,20 @@ nltk_data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "nltk_d
 os.makedirs(nltk_data_dir, exist_ok=True)
 nltk.data.path.append(nltk_data_dir)
 
-# Baixe os stopwords de forma proativa
-nltk.download("stopwords", download_dir=nltk_data_dir)
+# Baixe todos os pacotes comumente usados pelo LlamaIndex
+resources_to_download = [
+    "stopwords",
+    "punkt",
+    "punkt_tab",
+    "averaged_perceptron_tagger",
+    "wordnet"
+]
+
+for resource in resources_to_download:
+    try:
+        nltk.download(resource, download_dir=nltk_data_dir, quiet=True)
+    except Exception as e:
+        print(f"Aviso: não foi possível baixar o recurso NLTK '{resource}': {str(e)}")
 
 import chromadb
 from llama_index.core import VectorStoreIndex, SimpleDirectoryReader
