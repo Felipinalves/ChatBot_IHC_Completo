@@ -14,8 +14,9 @@ from chat.chat_interface import (
 )
 # from rag.rag_engine import initialize_system
 from utils.time_utils import get_brasilia_time
+import streamlit.components.v1 as components
 
-def handle_chats(firestore_db):
+def handle_chats(firestore_db, auth):
     """Gerencia a interface de chats e histórico"""
     
     # Inicializar o estado da sessão para chats
@@ -32,8 +33,8 @@ def handle_chats(firestore_db):
     with st.sidebar:
         st.title("Meus Chats")
         
-        # Botão para novo chat
-        if st.button("Novo Chat"):
+        # Botão para novo chat com ícone de mais
+        if st.button("➕ Novo Chat"):
             new_chat_title = f"Chat {len(st.session_state.chats) + 1}"
             new_chat_id = create_new_chat_in_firestore(firestore_db, st.session_state.user_id, new_chat_title)
             
@@ -43,13 +44,33 @@ def handle_chats(firestore_db):
             st.session_state.messages = []
             st.rerun()
         
-        # Lista de chats existentes
+        # Lista de chats existentes com ícone de mensagem
         st.divider()
         for chat_id, chat_data in st.session_state.chats.items():
-            if st.button(f"{chat_data['title']}", key=f"chat_{chat_id}"):
+            if st.button(f"💬 {chat_data['title']}", key=f"chat_{chat_id}"):
                 st.session_state.current_chat_id = chat_id
                 st.session_state.messages = load_chat_messages_from_firestore(firestore_db, chat_id)
                 st.rerun()
+        
+        # Adicionar uma divisão antes do perfil do usuário
+        st.divider()
+        
+        # Seção para mostrar o email do usuário e opção de logout
+        if "user_email" in st.session_state:
+            # Criando um container para o dropdown
+            user_container = st.container()
+            
+            # Criando um expander para simular um dropdown
+            with user_container.expander(f"👤 {st.session_state.user_email}"):
+                if st.button("🚪 Sair"):
+                    # Lógica para logout
+                    try:
+                        auth.current_user = None  # Limpar o usuário atual no auth
+                        for key in list(st.session_state.keys()):
+                            del st.session_state[key]  # Limpar todos os estados
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"Erro ao fazer logout: {str(e)}")
 
 def main():
     try:
@@ -71,7 +92,7 @@ def main():
         if "user_id" not in st.session_state or not st.session_state.user_id:
             show_auth_page(auth, firestore_db)
         else:
-            handle_chats(firestore_db)
+            handle_chats(firestore_db, auth)
             
             # Inicializar e mostrar interface do chat
             # query_engine = initialize_system()
