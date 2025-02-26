@@ -29,8 +29,8 @@ def main():
             show_auth_page()
         else:
             handle_chats()
-            query_engine = initialize_system()
-            show_chat_interface(query_engine, st.session_state.current_chat_id, st.session_state.messages)
+            #query_engine = initialize_system()
+            ##show_chat_interface(query_engine, st.session_state.current_chat_id, st.session_state.messages)
     except Exception as e:
         st.error(f"Erro durante a execução: {str(e)}")
 
