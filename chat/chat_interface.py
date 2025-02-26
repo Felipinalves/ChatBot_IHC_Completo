@@ -207,7 +207,7 @@ def list_user_chats_from_firestore(firestore_db, user_id):
     # Consultar chats do usuário
     chat_refs = firestore_db.collection("chats") \
                   .where("user_id", "==", user_id) \
-                  .order_by("updated_at", direction="ASCENDING") \
+                  .order_by("updated_at", direction="DESCENDING") \
                   .stream()
     
     # Converter para dicionário
