@@ -1,5 +1,15 @@
 import streamlit as st
 from utils.time_utils import get_brasilia_time
+from datetime import datetime, timedelta
+import google.cloud.firestore as firestore
+
+def generate_response_with_gemini(prompt):
+    """
+    Função stub para integração com o Gemini (ou outro modelo)
+    Em um ambiente real, esta função chamaria a API do modelo
+    """
+    # Este é apenas um exemplo; em produção, você integraria com a API real
+    return f"Resposta simulada sobre IHC para: {prompt.split('Pergunta:')[-1]}"
 
 def show_chat_interface(query_engine, firestore_db, chat_id, messages):
     """Exibe a interface principal do chatbot"""
@@ -14,7 +24,14 @@ def show_chat_interface(query_engine, firestore_db, chat_id, messages):
     
     # Campo de entrada para nova mensagem
     if prompt := st.chat_input("Faça uma pergunta sobre IHC"):
-        messages.append({"role": "user", "content": prompt})
+        # Adicionar nova mensagem ao estado
+        new_message = {
+            "role": "user", 
+            "content": prompt,
+            "timestamp": get_brasilia_time(),
+            "saved": False
+        }
+        messages.append(new_message)
         
         with st.chat_message("user"):
             st.write(prompt)
@@ -59,39 +76,58 @@ Forneça uma resposta direta e bem estruturada, desenvolvendo a explicação com
             
             if response:
                 response = response.replace('[PERGUNTA]', '').replace('[RESPOSTA]', '').strip()
-                messages.append({"role": "assistant", "content": response})
+                
+                # Adicionar resposta ao estado
+                new_response = {
+                    "role": "assistant", 
+                    "content": response,
+                    "timestamp": get_brasilia_time(),
+                    "saved": False
+                }
+                messages.append(new_response)
                 
                 with st.chat_message("assistant"):
                     st.write(response)
                 
-                # Salvar chat no Firestore se existir um chat_id
-                if chat_id:
-                    chat_data = {
-                        "user_id": st.session_state.user_id,
-                        "title": st.session_state.chats[chat_id]["title"],
-                        "created_at": st.session_state.chats[chat_id]["created_at"],
-                        "updated_at": get_brasilia_time(),
-                    }
-                    
-                    # Atualizar documento principal do chat
-                    chat_ref = firestore_db.collection("chats").document(chat_id)
-                    chat_ref.set(chat_data, merge=True)
-                    
-                    # Adicionar mensagens à subcoleção
-                    for idx, msg in enumerate(messages):
-                        if not msg.get("saved", False):  # Apenas salva mensagens não salvas anteriormente
-                            msg_data = {
-                                "role": msg["role"],
-                                "content": msg["content"],
-                                "timestamp": get_brasilia_time(),
-                                "order": idx  # Para manter a ordem das mensagens
-                            }
-                            chat_ref.collection("messages").add(msg_data)
-                            msg["saved"] = True  # Marca como salva
+                # Salvar chat e mensagens no Firestore
+                save_chat_to_firestore(firestore_db, chat_id, messages)
             
             status.update(label="Resposta gerada!", state="complete", expanded=False)
 
-# Função para carregar mensagens de um chat do Firestore
+def save_chat_to_firestore(firestore_db, chat_id, messages):
+    """
+    Salva o chat e suas mensagens no Firestore
+    
+    Args:
+        firestore_db: Cliente Firestore
+        chat_id: ID do chat
+        messages: Lista de mensagens
+    """
+    if not chat_id or "chats" not in st.session_state or chat_id not in st.session_state.chats:
+        return
+    
+    # Atualizar timestamp do chat
+    now = get_brasilia_time()
+    chat_data = {
+        "updated_at": now,
+    }
+    
+    # Atualizar documento principal do chat
+    chat_ref = firestore_db.collection("chats").document(chat_id)
+    chat_ref.update(chat_data)
+    
+    # Adicionar mensagens não salvas à subcoleção
+    for idx, msg in enumerate(messages):
+        if not msg.get("saved", False):  # Apenas salva mensagens não salvas anteriormente
+            msg_data = {
+                "role": msg["role"],
+                "content": msg["content"],
+                "timestamp": msg.get("timestamp", now),
+                "order": idx  # Para manter a ordem das mensagens
+            }
+            chat_ref.collection("messages").add(msg_data)
+            msg["saved"] = True  # Marca como salva
+
 def load_chat_messages_from_firestore(firestore_db, chat_id):
     """
     Carrega as mensagens de um chat do Firestore
@@ -105,6 +141,9 @@ def load_chat_messages_from_firestore(firestore_db, chat_id):
     """
     messages = []
     
+    if not chat_id:
+        return messages
+    
     # Referência para a coleção de mensagens do chat
     message_refs = firestore_db.collection("chats").document(chat_id) \
                      .collection("messages") \
@@ -117,12 +156,12 @@ def load_chat_messages_from_firestore(firestore_db, chat_id):
         messages.append({
             "role": msg_data["role"],
             "content": msg_data["content"],
+            "timestamp": msg_data.get("timestamp", get_brasilia_time()),
             "saved": True  # Marcar como já salva no Firestore
         })
     
     return messages
 
-# Função para salvar novo chat no Firestore
 def create_new_chat_in_firestore(firestore_db, user_id, title):
     """
     Cria um novo chat no Firestore
@@ -142,7 +181,8 @@ def create_new_chat_in_firestore(firestore_db, user_id, title):
         "user_id": user_id,
         "title": title,
         "created_at": now,
-        "updated_at": now
+        "updated_at": now,
+        "expiry_date": now + timedelta(days=30)  # Define data de expiração para 30 dias
     }
     
     # Adicionar documento à coleção de chats
@@ -151,7 +191,6 @@ def create_new_chat_in_firestore(firestore_db, user_id, title):
     
     return chat_ref.id
 
-# Função para listar todos os chats de um usuário
 def list_user_chats_from_firestore(firestore_db, user_id):
     """
     Lista todos os chats de um usuário
@@ -177,3 +216,54 @@ def list_user_chats_from_firestore(firestore_db, user_id):
         chats[chat.id] = chat_data
     
     return chats
+
+def cleanup_old_chats(firestore_db, days=30):
+    """
+    Remove chats e mensagens mais antigos que o número especificado de dias
+    
+    Args:
+        firestore_db: Cliente Firestore
+        days: Número de dias para manter os chats (padrão: 30)
+    """
+    now = get_brasilia_time()
+    cutoff_date = now - timedelta(days=days)
+    
+    # Encontrar chats expirados
+    expired_chats = firestore_db.collection("chats") \
+                      .where("updated_at", "<", cutoff_date) \
+                      .stream()
+    
+    batch_size = 0
+    batch = firestore_db.batch()
+    
+    for chat in expired_chats:
+        chat_ref = firestore_db.collection("chats").document(chat.id)
+        
+        # Excluir todas as mensagens primeiro
+        messages = chat_ref.collection("messages").stream()
+        for msg in messages:
+            msg_ref = chat_ref.collection("messages").document(msg.id)
+            batch.delete(msg_ref)
+            batch_size += 1
+            
+            # Enviar batch quando atingir limite (500 é o máximo para firestore)
+            if batch_size >= 450:
+                batch.commit()
+                batch = firestore_db.batch()
+                batch_size = 0
+        
+        # Excluir o documento do chat
+        batch.delete(chat_ref)
+        batch_size += 1
+        
+        # Enviar batch quando atingir limite
+        if batch_size >= 450:
+            batch.commit()
+            batch = firestore_db.batch()
+            batch_size = 0
+    
+    # Enviar batch final se houver operações pendentes
+    if batch_size > 0:
+        batch.commit()
+    
+    print(f"Limpeza de chats antigos concluída: {now}")
