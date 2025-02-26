@@ -5,7 +5,7 @@ import streamlit as st
 def initialize_pyrebase():
     try:
         firebase_config = {
-            "apiKey": st.secrets["FIREBASE_API_KEY"],
+            "apiKey": st.secrets["apiKey"],
             "authDomain": st.secrets["FIREBASE_AUTH_DOMAIN"],
             "databaseURL": st.secrets["FIREBASE_DATABASE_URL"],
             "projectId": st.secrets["FIREBASE_PROJECT_ID"],
