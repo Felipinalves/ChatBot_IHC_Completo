@@ -22,16 +22,7 @@ import google.generativeai as genai
 
 
 import nltk
-os.makedirs("/tmp/nltk_data", exist_ok=True)
-nltk.data.path = ["/tmp/nltk_data"] + nltk.data.path
-
-# Baixar explicitamente os recursos necessários
-try:
-    nltk.download('punkt', download_dir='/tmp/nltk_data')
-    nltk.download('averaged_perceptron_tagger', download_dir='/tmp/nltk_data')
-    nltk.download('stopwords', download_dir='/tmp/nltk_data')
-except Exception as e:
-    st.warning(f"Não foi possível baixar recursos NLTK: {str(e)}")
+nltk.download('stopwords')
 
 # Configurações do Firebase
 firebase_config = {
