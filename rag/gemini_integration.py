@@ -3,7 +3,7 @@ import time
 import streamlit as st
 
 # Configuração da API do Gemini
-GOOGLE_API_KEY = st.secrets["GOOGLE_API_KEY"]
+GOOGLE_API_KEY = st.secrets["GEMINI_API_KEY"]
 
 def generate_response_with_gemini(prompt, max_retries=3):
     """
