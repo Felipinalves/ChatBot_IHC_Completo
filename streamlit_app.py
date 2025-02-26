@@ -5,6 +5,7 @@ sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 import streamlit as st
 from auth.firebase_auth import initialize_firebase_admin
 from auth.pyrebase_auth import initialize_pyrebase
+from auth.auth_interface import show_auth_page
 from chat.chat_interface import show_chat_interface
 #from rag.rag_engine import initialize_system
 from utils.time_utils import get_brasilia_time
