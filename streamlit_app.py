@@ -1,3 +1,7 @@
+__import__('pysqlite3')
+import sys
+sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+
 import streamlit as st
 from auth.firebase_auth import initialize_firebase_admin
 from auth.pyrebase_auth import initialize_pyrebase
