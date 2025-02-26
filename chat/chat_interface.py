@@ -182,7 +182,7 @@ def create_new_chat_in_firestore(firestore_db, user_id, title):
         "title": title,
         "created_at": now,
         "updated_at": now,
-        "expiry_date": now + timedelta(days=30)  # Define data de expiração para 30 dias
+        "expiry_date": (now + timedelta(days=30)).timestamp()  # Define data de expiração para 30 dias
     }
     
     # Adicionar documento à coleção de chats
