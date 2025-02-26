@@ -40,8 +40,11 @@ def register_user(auth, db, email, password, name):
         error_dict = json.loads(error_json)
         error_message = error_dict.get('error', {}).get('message', 'Erro desconhecido')
         
-        if error_message:
-            return None, f"Erro ao criar conta: {error_message}"
+        if error_message == 'EMAIL_EXISTS':
+            return None, f"Você já possui uma conta. Por favor, faça login ou recupere sua senha."
+            
+            else:
+                return None, f"Erro ao criar conta: {error_message}"
 
 def reset_password(auth, email):
     try:
