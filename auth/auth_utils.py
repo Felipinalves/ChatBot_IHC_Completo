@@ -13,8 +13,8 @@ def login_with_email(auth, email, password):
         
         if error_message == 'EMAIL_NOT_FOUND':
             return None, "E-mail não encontrado. Por favor, verifique seu e-mail ou crie uma conta."
-        elif error_message == 'INVALID_PASSWORD':
-            return None, "Senha incorreta. Por favor, tente novamente."
+        elif error_message == 'INVALID_LOGIN_CREDENTIALS':
+            return None, "Credenciais erradas. Por favor, tente novamente."
         else:
             return None, f"Erro ao fazer login: {error_message}"
 
@@ -41,9 +41,7 @@ def register_user(auth, db, email, password, name):
         error_message = error_dict.get('error', {}).get('message', 'Erro desconhecido')
         
         if error_message == 'EMAIL_EXISTS':
-            return None, "Cadastro realizado com sucesso! faça seu login."
-        elif error_message == 'WEAK_PASSWORD':
-            return None, "Senha fraca. Use pelo menos 6 caracteres."
+            return None, "Cadastro realizado com sucesso! Faça seu login."
         else:
             return None, f"Erro ao criar conta: {error_message}"
 
