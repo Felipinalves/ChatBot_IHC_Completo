@@ -46,8 +46,8 @@ def delete_empty_chat(firestore_db, chat_id):
 def get_chat_timestamp_title():
     """Gera título do chat com data e hora atual"""
     now = get_brasilia_time()
-    # Formato: "DD/MM - HH:MM"
-    return now.strftime("%d/%m - %H:%M")
+    # Formato: "DD/MM/YY - HH:MM"
+    return now.strftime("%d/%m/%Y - %H:%M")
 
 def handle_chats(firestore_db, auth):
     """Gerencia a interface de chats e histórico"""
