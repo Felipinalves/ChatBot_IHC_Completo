@@ -1,8 +1,0 @@
-[server]
-enableXsrfProtection = false
-
-[browser]
-gatherUsageStats = false
-
-[runner]
-magicEnabled = true
