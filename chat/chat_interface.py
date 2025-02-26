@@ -24,6 +24,10 @@ def show_chat_interface(query_engine, firestore_db, chat_id, messages):
     
     # Campo de entrada para nova mensagem
     if prompt := st.chat_input("Faça uma pergunta sobre IHC"):
+        # O chat agora tem mensagens, não é mais temporário
+        if "is_temp_chat" in st.session_state:
+            st.session_state.is_temp_chat = False
+            
         # Adicionar nova mensagem ao estado
         new_message = {
             "role": "user", 
