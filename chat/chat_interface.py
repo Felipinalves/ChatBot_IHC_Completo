@@ -1,6 +1,9 @@
 import streamlit as st
 from utils.time_utils import get_brasilia_time
 
+import streamlit as st
+from utils.time_utils import get_brasilia_time
+
 def show_chat_interface(query_engine, firestore_db, chat_id, messages):
     """Exibe a interface principal do chatbot"""
     
@@ -18,6 +21,25 @@ def show_chat_interface(query_engine, firestore_db, chat_id, messages):
         
         with st.chat_message("user"):
             st.write(prompt)
+        
+        # Verificar se é a primeira mensagem do usuário e atualizar o título do chat
+        is_first_message = len([m for m in messages if m["role"] == "user"]) == 1
+        
+        # Atualizar título do chat se for a primeira mensagem
+        if is_first_message and chat_id:
+            # Limitar o tamanho do título para evitar títulos muito longos
+            if len(prompt) > 50:
+                new_chat_title = prompt[:47] + "..."
+            else:
+                new_chat_title = prompt
+                
+            # Atualizar título no Firestore e no estado da sessão
+            chat_ref = firestore_db.collection("chats").document(chat_id)
+            chat_ref.update({"title": new_chat_title})
+            
+            # Atualizar no estado da sessão
+            if "chats" in st.session_state and chat_id in st.session_state.chats:
+                st.session_state.chats[chat_id]["title"] = new_chat_title
         
         with st.status("Processando sua pergunta...", expanded=True) as status:
             st.write("Buscando informações relevantes...")
