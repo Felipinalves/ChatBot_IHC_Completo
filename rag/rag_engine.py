@@ -1,3 +1,14 @@
+import os
+import nltk
+
+# Crie um diretório local para os dados NLTK
+nltk_data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "nltk_data")
+os.makedirs(nltk_data_dir, exist_ok=True)
+nltk.data.path.append(nltk_data_dir)
+
+# Baixe os stopwords de forma proativa
+nltk.download("stopwords", download_dir=nltk_data_dir)
+
 import chromadb
 from llama_index.core import VectorStoreIndex, SimpleDirectoryReader
 from llama_index.vector_stores.chroma.base import ChromaVectorStore
