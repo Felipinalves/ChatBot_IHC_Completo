@@ -6,9 +6,7 @@ def show_chat_interface(query_engine, firestore_db, chat_id, messages):
     
     # Verificar se há um chat atual
     if chat_id and chat_id in st.session_state.chats:
-        st.title(f"🤖 {st.session_state.chats[chat_id]['title']}")
-    else:
-        st.title("Chatbot Especialista em IHC 🤖")
+        st.title(f"🤖 IAHC Chatbot")
     
     st.info("Este chatbot utiliza RAG (Retrieval Augmented Generation) para fornecer respostas precisas sobre IHC.", icon="ℹ️")
     
