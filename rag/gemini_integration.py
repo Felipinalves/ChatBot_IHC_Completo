@@ -39,12 +39,12 @@ def generate_response_with_gemini(prompt, max_retries=3):
                if response and hasattr(response, 'text'):
                        return response.text
                    return None
-               except Exception as e:
-                   if attempt < max_retries - 1:
-                       time.sleep(2)
-                       continue
-                   st.error(f"Erro ao gerar resposta: {str(e)}")
-                   return None
+         except Exception as e:
+             if attempt < max_retries - 1:
+                 time.sleep(2)
+                 continue
+             st.error(f"Erro ao gerar resposta: {str(e)}")
+             return None
     except Exception as e:
         st.error(f"Erro na configuração do Gemini: {str(e)}")
         return "Não foi possível conectar ao modelo de linguagem. Por favor, verifique a configuração da API."
