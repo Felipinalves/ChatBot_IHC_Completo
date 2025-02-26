@@ -13,7 +13,8 @@ from chat.chat_interface import (
     list_user_chats_from_firestore,
     cleanup_old_chats
 )
-# from rag.rag_engine import initialize_system
+from rag.rag_engine import initialize_system
+from rag.gemini_integration import 
 from utils.time_utils import get_brasilia_time
 import streamlit.components.v1 as components
 import schedule
