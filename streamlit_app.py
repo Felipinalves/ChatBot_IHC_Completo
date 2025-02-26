@@ -2,13 +2,11 @@ __import__('pysqlite3')
 import sys
 sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
-chmod 777 /home/adminuser/venv/lib/python3.12/site-packages/llama_index/core/_static/nltk
-
 import streamlit as st
 from auth.firebase_auth import initialize_firebase_admin
 from auth.pyrebase_auth import initialize_pyrebase
 from chat.chat_interface import show_chat_interface
-from rag.rag_engine import initialize_system
+#from rag.rag_engine import initialize_system
 from utils.time_utils import get_brasilia_time
 
 def main():
