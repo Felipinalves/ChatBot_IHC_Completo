@@ -1,25 +1,30 @@
 import os
 import nltk
+import tempfile
+from pathlib import Path
+import streamlit as st
 
-# Crie um diretório local para os dados NLTK
-nltk_data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "nltk_data")
+# Configurar diretórios temporários com permissão de escrita
+temp_dir = Path(tempfile.mkdtemp())
+
+# Configurar caminhos para NLTK e ChromaDB dentro do diretório temporário
+nltk_data_dir = temp_dir / "nltk_data"
+os.environ["NLTK_DATA"] = str(nltk_data_dir)
 os.makedirs(nltk_data_dir, exist_ok=True)
-nltk.data.path.append(nltk_data_dir)
 
-# Baixe todos os pacotes comumente usados pelo LlamaIndex
-resources_to_download = [
-    "stopwords",
-    "punkt",
-    "punkt_tab",
-    "averaged_perceptron_tagger",
-    "wordnet"
-]
+chroma_db_dir = temp_dir / "chroma_db"
+os.makedirs(chroma_db_dir, exist_ok=True)
 
-for resource in resources_to_download:
-    try:
-        nltk.download(resource, download_dir=nltk_data_dir, quiet=True)
-    except Exception as e:
-        print(f"Aviso: não foi possível baixar o recurso NLTK '{resource}': {str(e)}")
+# Configurar cache do tiktoken
+tiktoken_cache_dir = temp_dir / "tiktoken_cache"
+os.environ["TIKTOKEN_CACHE_DIR"] = str(tiktoken_cache_dir)
+os.makedirs(tiktoken_cache_dir, exist_ok=True)
+
+# Baixar recursos do NLTK
+nltk.download('stopwords', download_dir=nltk_data_dir, quiet=True)
+nltk.download('punkt', download_dir=nltk_data_dir, quiet=True)
+nltk.download('averaged_perceptron_tagger', download_dir=nltk_data_dir, quiet=True)
+nltk.download('wordnet', download_dir=nltk_data_dir, quiet=True)
 
 import chromadb
 from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, load_index_from_storage
@@ -29,15 +34,6 @@ from llama_index.core import Settings
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 import streamlit as st
 
-def get_or_create_index(documents, persist_dir="./storage"):
-    if os.path.exists(persist_dir):
-        storage_context = StorageContext.from_defaults(persist_dir=persist_dir)
-        index = load_index_from_storage(storage_context)
-    else:
-        index = VectorStoreIndex.from_documents(documents, show_progress=True)
-        index.storage_context.persist(persist_dir=persist_dir)
-    return index
-
 @st.cache_resource(show_spinner=False)
 def initialize_system():
     try:
@@ -46,16 +42,25 @@ def initialize_system():
         )
         Settings.llm = None
         
-        db = chromadb.PersistentClient(path="chroma_db")
-        chroma_collection = db.get_or_create_collection("quickstart")
+        # Inicializar ChromaDB com caminho temporário
+        db = chromadb.PersistentClient(path=str(chroma_db_dir))
+        chroma_collection = db.get_or_create_collection("ihc_collection")
         
+        # Configurar vector store
         vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
         storage_context = StorageContext.from_defaults(vector_store=vector_store)
         
+        # Carregar documentos (ajuste o caminho conforme necessário)
         documents = SimpleDirectoryReader("./arquivosFormatados").load_data()
+
+        # Criar índice
+        index = VectorStoreIndex.from_documents(
+            documents,
+            storage_context=storage_context,
+            show_progress=True
+        )
         
-        # Usar a função get_or_create_index para criar ou carregar o índice
-        index = get_or_create_index(documents, persist_dir="./storage")
+        return index.as_query_engine()
         
         return index.as_query_engine()
     except Exception as e:
