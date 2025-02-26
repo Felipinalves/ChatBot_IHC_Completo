@@ -22,12 +22,21 @@ for resource in resources_to_download:
         print(f"Aviso: não foi possível baixar o recurso NLTK '{resource}': {str(e)}")
 
 import chromadb
-from llama_index.core import VectorStoreIndex, SimpleDirectoryReader
+from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, load_index_from_storage
 from llama_index.vector_stores.chroma.base import ChromaVectorStore
 from llama_index.core import StorageContext
 from llama_index.core import Settings
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 import streamlit as st
+
+def get_or_create_index(documents, persist_dir="./storage"):
+    if os.path.exists(persist_dir):
+        storage_context = StorageContext.from_defaults(persist_dir=persist_dir)
+        index = load_index_from_storage(storage_context)
+    else:
+        index = VectorStoreIndex.from_documents(documents, show_progress=True)
+        index.storage_context.persist(persist_dir=persist_dir)
+    return index
 
 @st.cache_resource(show_spinner=False)
 def initialize_system():
@@ -44,11 +53,9 @@ def initialize_system():
         storage_context = StorageContext.from_defaults(vector_store=vector_store)
         
         documents = SimpleDirectoryReader("./arquivosFormatados").load_data()
-        index = VectorStoreIndex.from_documents(
-            documents, 
-            storage_context=storage_context,
-            show_progress=True
-        )
+        
+        # Usar a função get_or_create_index para criar ou carregar o índice
+        index = get_or_create_index(documents, persist_dir="./storage")
         
         return index.as_query_engine()
     except Exception as e:
