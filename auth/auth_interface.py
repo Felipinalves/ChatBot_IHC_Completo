@@ -17,7 +17,7 @@ def show_auth_page(auth, db):
         st.title("IAHC Chatbot 🤖")
         
         # Tabs para diferentes opções de autenticação
-        tab[1], tab[2], tab[3] = st.tabs(["Login", "Cadastro", "Recuperar Senha"])
+        tab = st.tabs(["Login", "Cadastro", "Recuperar Senha"])
         
         with tab[1]:
             st.subheader("Login")
