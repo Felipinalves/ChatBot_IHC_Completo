@@ -20,14 +20,14 @@ def generate_response_with_gemini(prompt, max_retries=3):
         genai.configure(api_key=GOOGLE_API_KEY)
         
         generation_config = {
-            "temperature": 0.7,
+            "temperature": 1,
             "top_p": 0.95,
-            "top_k": 40,
+            "top_k": 64,
             "max_output_tokens": 8192,
         }
         
         model = genai.GenerativeModel(
-            model_name="gemini-1.5-pro",
+            model_name="gemini-2.0-pro-exp-02-05",
             generation_config=generation_config
         )
         
