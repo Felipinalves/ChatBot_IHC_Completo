@@ -58,16 +58,24 @@ def show_chat_interface(query_engine, firestore_db, chat_id, messages):
             
             st.write("Gerando resposta...")
             full_prompt = f"""Você é um especialista em IHC (Interação Humano-Computador) com vasta experiência acadêmica e prática.
-Sua tarefa é fornecer respostas precisas e bem fundamentadas, baseadas no contexto fornecido.
-[DIRETRIZES]
+
+[INSTRUÇÕES]
+1. Analise cuidadosamente a pergunta e o contexto fornecido.
+2. Se o contexto contiver informações relevantes para a pergunta, baseie sua resposta principalmente nessas informações.
+3. Se o contexto for insuficiente ou não abordar diretamente a pergunta, forneça uma resposta baseada em seu conhecimento geral de IHC, sem mencionar a ausência de informações no contexto.
+4. Não faça referências diretas aos "textos fornecidos" ou "artigos" na sua resposta.
+
+[FORMATO]
 - Use português brasileiro formal
-- Mantenha termos técnicos consolidados em inglês
-- Organize a resposta em parágrafos claros e concisos
-- Mencione autores/fontes quando relevante
+- Mantenha termos técnicos consolidados em inglês quando apropriado
+- Estruture sua resposta em parágrafos claros e concisos
+- Inclua exemplos práticos quando relevante
+- Apresente diferentes perspectivas quando apropriado
+
 [CONTEXTO]
 {context}
+
 Pergunta: {prompt}
-Forneça uma resposta direta e bem estruturada, desenvolvendo a explicação com detalhes relevantes e concluindo com aspectos práticos. Se houver diferentes visões na literatura, apresente-as.
 """
             response = generate_response_with_gemini(full_prompt)
             
